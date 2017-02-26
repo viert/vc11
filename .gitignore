@@ -1,0 +1,4 @@
+zcc_opt.def
+zcc_proj.lst
+*.rom
+*.o
