@@ -16,5 +16,11 @@ void dummy1() {
 }
 
 void dummy2() {
-    printf("Abc");
+	// unsigned char f = 1;
+	// cls();
+	// while (1) {
+	// 	memset(0x4800, f, 0x800);
+	// 	f++;
+	// }
+	printf("Blah, minor");
 }
