@@ -5,6 +5,7 @@
 
 	MODULE 		proc
 	INCLUDE 	"z80_crt0.hdr"
+	INCLUDE		"../variables.asm"
 
 ; Public scope functions
 
@@ -16,29 +17,20 @@
 	PUBLIC		_switch_context			; void				switch_context ();
 	PUBLIC		_get_cp_stack_pointer		; void*				get_cp_stack_pointer ();
 
-; Constants
-
-	DEFC		PROCS_CURRENT_ADDR 	= $83FF
-	DEFC		PROCS_TABLE_ADDR 	= $8400
-	DEFC		PROC_DESCRIPTOR_SIZE 	= 8
-	DEFC		S_RUNNING		= 1
-	DEFC 		S_STOPPED		= 0
-
-
 ;
 ; find_empty_slot returns process descriptor addr in HL or 0 if it's not found
 ; modifies af, bc, de, ix
 ;
 ._find_empty_slot
 	ld	b, 8				; counter (max 8 processes to search in)
-	ld	ix, PROCS_TABLE_ADDR		; the process table starts
+	ld	ix, ProcessTable		; the process table starts
 .fes_loop
 	ld	a, (ix+6)			; 6th byte is the 'exists' field
 	or	a
 	jr	z, fes_found
 	dec	b 				; decrement counter
 	jr 	z, fes_not_found
-	ld 	de, PROC_DESCRIPTOR_SIZE	; size of process descriptor
+	ld 	de, ProcessDescriptorSize	; size of process descriptor
 	add	ix, de
 	jr	fes_loop
 .fes_not_found
@@ -91,8 +83,8 @@
 	add	hl, bc				; making space for af,bc,de,hl,ix,iy
 	ld	(ix+4), l			; storing stack pointer to process descriptor
 	ld 	(ix+5),	h
-	ld	(ix+6), 1			; setting process descriptor 'exists' field to 1
-	ld	(ix+7), S_RUNNING		; setting process descriptor 'status' field to running
+	ld	(ix+6), True			; setting process descriptor 'exists' field to 1
+	ld	(ix+7), StatusRunning		; setting process descriptor 'status' field to running
 
 .cpr_error
 	ld	hl, 0
@@ -105,7 +97,7 @@
 ; NOTICE FALLTHROUGH TO get_process_descriptor(...)
 ;
 ._get_process_descriptor_current
-	ld	hl, PROCS_CURRENT_ADDR
+	ld	hl, ProcessCurrent
 	ld	l, (hl)
 	ld	h, 0
 ;
@@ -120,7 +112,7 @@
 	sla	l				; multiply p_num by 8 (64 max, no need to increment h)
 	sla	l
 	push	bc
-	ld	bc, PROCS_TABLE_ADDR
+	ld	bc, ProcessTable
 	add	hl, bc
 	pop	bc
 	ret
@@ -153,7 +145,7 @@
 ;
 
 ._switch_context
-	ld	hl, PROCS_CURRENT_ADDR
+	ld	hl, ProcessCurrent
 	ld	b,(hl)				; current process number
 	ld	hl, 2				; get current stack pointer
 	add 	hl, sp				; without ret to kernel INT handler
@@ -182,9 +174,9 @@
 	jr 	z, sctx_search
 	inc	l
 	ld	a,(hl)				; get process 'status' field
-	cp	S_RUNNING
+	cp	StatusRunning
 	jr	nz, sctx_search
-	ld	hl, PROCS_CURRENT_ADDR
+	ld	hl, ProcessCurrent
 	ld	(hl), b	
 	ret
 
