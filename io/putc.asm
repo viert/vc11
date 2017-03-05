@@ -3,23 +3,13 @@
 ;  pure assembler function displaying a character on the screen
 ;
 
-	MODULE		putc
+	MODULE		io
 	INCLUDE		"z80_crt0.hdr"
-
-; Constants
-
-	DEFC 		KC_ENTER 	= $0D
-	DEFC		KC_SPACE	= $20
-	DEFC 		SIZE_X		= $20
-	DEFC 		SIZE_Y		= $18
-	DEFC 		_cursor_x	= $83F0
-	DEFC 		_cursor_y	= $83F1
+	INCLUDE		"../variables.asm"
 
 ; Public scope functions and variables
 
-	PUBLIC		_charset		; unsigned char[] 	charset
-	PUBLIC		_cursor_x		; unsigned char* 	cursor_x
-	PUBLIC		_cursor_y		; unsigned char* 	cursor_y
+	PUBLIC 		_charset_default	; for setting default charset during kernel bootstrap
 	PUBLIC		_putc			; void __FASTCALL__	putc(unsigned char code)
 
 ._putc
@@ -27,24 +17,25 @@
 	or 	a				; zero-terminated
 	ret 	z				; 
 
-	cp	KC_ENTER			; carrige return
+	cp	KeycodeEnter			; carrige return
 	jr 	nz, putc_letters
 
-	ld 	hl, _cursor_y
+	ld 	hl, CursorY
 	ld 	a, (hl)
 	inc 	a 
-	cp 	SIZE_Y
+	cp 	ScreenSizeY
 	jr 	nz, putc_nowrap
 	xor 	a
 .putc_nowrap
 	ld 	(hl), a
-	ld 	hl, _cursor_x
+	ld 	hl, CursorX
 	ld 	(hl), 0
 	ret
 
 .putc_letters
-	cp 	KC_SPACE
+	cp 	KeycodeSpace
 	ret 	m
+	sub 	KeycodeSpace
 	ld 	c, a
 	ld 	b, 0				; char code in BC
 	sla 	c				; multiply BC by 8
@@ -53,8 +44,12 @@
 	rl 	b
 	sla 	c
 	rl 	b
-	ld	hl, _charset - (8 * KC_SPACE)
-	add	hl, bc
+	ld 	hl, CharsetAddr			; Getting current charset addr
+	ld	a, (hl)
+	inc 	hl
+	ld 	h, (hl)
+	ld	l, a
+	add	hl, bc				; adding symbol offset
 	push 	hl
 	call	get_cursor_screen_addr
 	pop 	de				; HL - screen addr, DE - charset table addr
@@ -80,17 +75,17 @@
 	jr 	nz, lt_loop
 						; copied!
 
-	ld 	hl, _cursor_x			; incrementing x
+	ld 	hl, CursorX			; incrementing x
 	ld 	a, (hl)
 	inc 	a
-	and 	SIZE_X-1
+	and 	ScreenSizeX-1
 	ld 	(hl), a
 	ret 	nz				; x not wrapped, no need to modify y
 
-	ld 	hl, _cursor_y
+	ld 	hl, CursorY
 	ld 	a, (hl)
 	inc 	a				; incrementing y
-	cp 	SIZE_Y
+	cp 	ScreenSizeX
 	jr	nz, lt_y_nowrap
 	xor 	a
 .lt_y_nowrap
@@ -99,7 +94,7 @@
 
 
 .get_cursor_screen_addr
-	ld 	hl, _cursor_y
+	ld 	hl, CursorY
 	ld 	b, (hl)				; cursor_y in B
 	ld 	a, $18
 	and	b				; after masking, B has third of screen in bits 3,4
@@ -114,14 +109,14 @@
 	sla 	a
 	ld 	l, a
 	push 	hl
-	ld 	hl, _cursor_x
+	ld 	hl, CursorX
 	ld 	c, (hl)
 	ld 	b, 0
 	pop 	hl
 	add 	hl, bc
 	ret
 
-._charset
+._charset_default
 	defb 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	defb 0x18, 0x3C, 0x3C, 0x18, 0x18, 0x00, 0x18, 0x00
 	defb 0x66, 0x66, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00
