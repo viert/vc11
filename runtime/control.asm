@@ -52,8 +52,9 @@
 
 ; clears ram
 .clear_ram
+	pop 	de					; saving return addr before wiping memory
 	ld	hl, ScreenStart				; clears ram
-	ld	bc, $C000
+	ld	bc, $BF00				; B is not C0 because C is actually makes one extra 256 cycle because of post zero checking
 	xor	a
 .cr_loop
 	ld	(hl), a
@@ -62,6 +63,7 @@
 	jr 	nz, cr_loop
 	dec	b
 	jr	nz, cr_loop
+	push 	de					; restoring the return addr (stack is wiped)
 	ret
 
 ; setting kernels variables defaults
