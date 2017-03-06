@@ -1,3 +1,4 @@
+#include "../io/console.h"
 
 void cls() {
 	outp(254, 0); // border 0
@@ -14,11 +15,10 @@ void dummy1() {
 }
 
 void dummy2() {
-    int i;
-    char* str = 0x9100;
-    sprintf(str, "Aquavitale %d", 79);
-    for (i = 0; i < 100; i++) {
-        if (*(str + i) == 0) break;
-        putc(*(str+i));
+	unsigned long* clock = 0x5B04;
+    unsigned long* onscreen = 0x5020;
+    puts("Aquavitale");
+    while (1) {
+    	*onscreen = *clock;
     }
 }

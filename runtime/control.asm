@@ -19,6 +19,7 @@
 ; Constants
 
 	DEFC		DUMMY_STACK = $8600
+	DEFC		DUMMY2_STACK = $8700
 
 ;
 ; kernel_entry()
@@ -40,6 +41,14 @@
 	ld	hl, _dummy1				; first process
 	push	hl
 	ld	hl, DUMMY_STACK
+	push	hl
+	call	_create_process
+	pop	bc
+	pop	bc
+
+	ld	hl, _dummy2				; first process
+	push	hl
+	ld	hl, DUMMY2_STACK
 	push	hl
 	call	_create_process
 	pop	bc

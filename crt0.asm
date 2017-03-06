@@ -1,6 +1,8 @@
-EXTERN 		_kernel_entry
-EXTERN		_get_cp_stack_pointer
-EXTERN		_switch_context
+	EXTERN 		_kernel_entry
+	EXTERN		_get_cp_stack_pointer
+	EXTERN		_switch_context
+	EXTERN		_scan_keyboard
+	EXTERN		_inc_clock
 
 	org	$0000
 	di
@@ -17,6 +19,8 @@ EXTERN		_switch_context
 	push 	de
 	push 	bc
 	push	af
+	call	_inc_clock
+	call	_scan_keyboard
 	call	_switch_context
 	call	_get_cp_stack_pointer
 	ld	sp, hl

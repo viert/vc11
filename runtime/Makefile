@@ -1,6 +1,9 @@
-OBJS = proc.o control.o
+OBJS = proc.o control.o clock.o
 
 all: $(OBJS)
+
+clock.o: clock.asm
+	zcc -c $<
 
 proc.o: proc.asm
 	zcc -c $<

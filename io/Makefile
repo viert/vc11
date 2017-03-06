@@ -1,9 +1,9 @@
-OBJS = putc.o
+OBJS = console.o
 
 all: $(OBJS)
 
-putc.o: putc.asm
-	zcc -c putc.asm
+console.o: console.asm
+	zcc -c $<
 
 clean:
 	$(RM) *.o zcc_opt.def 

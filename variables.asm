@@ -16,6 +16,7 @@ DEFVARS KernelVariables {
 	CursorX		ds.b 	1
 	CursorY 	ds.b 	1
 	CharsetAddr	ds.w 	1
+	Clock		ds.w	2
 	ProcessCurrent	ds.b	1
 	ProcessTable	ds.b	ProcessDescriptorSize * MaxProcesses
 }
